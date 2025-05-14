@@ -1,23 +1,30 @@
+// server.js
+const express = require("express");
+const http    = require("http");
+const WebSocket = require("ws");
+const path    = require("path");
 
-const express = require('express');
-const http = require('http');
-const WebSocket = require('ws');
-
-const app = express();
+const app    = express();
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+const wss    = new WebSocket.Server({ server });
 
-wss.on('connection', (ws) => {
-  console.log('🔌 WebSocket client connected');
+// Serve index.html & audio-analyzer.js from the root
+app.use(express.static(path.join(__dirname)));
 
-  ws.on('message', (message) => {
-    console.log('📨 Received audio data:', message);
-    // Here you would forward the message to TouchDesigner
-    // For now, just log it
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+wss.on("connection", (ws) => {
+  console.log("🔌 WebSocket client connected");
+
+  ws.on("message", (message) => {
+    console.log("📨 Received audio data:", message);
+    // TODO: Forward to TouchDesigner via your existing pipeline
   });
 
-  ws.on('close', () => {
-    console.log('❌ WebSocket client disconnected');
+  ws.on("close", () => {
+    console.log("❌ WebSocket client disconnected");
   });
 });
 
