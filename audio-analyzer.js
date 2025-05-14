@@ -1,44 +1,64 @@
+// audio-analyzer.js
 
 let ws;
+const WS_URL = "wss://fyt-interview-fa9bf3d3321e.herokuapp.com/";
+const CONNECT_TIMEOUT = 5000; // ms
 
-function startAudio() {
-  // Request microphone access
-  navigator.mediaDevices.getUserMedia({ audio: true })
-    .then(stream => {
-      // Set up WebSocket connection
-      ws = new WebSocket("wss://fyt-interview-fa9bf3d3321e.herokuapp.com/");
+async function startAudio() {
+  try {
+    // 1) Get mic access
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    console.log("✅ Microphone access granted");
 
-      ws.onopen = () => {
-        console.log('✅ WebSocket connected');
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const analyser = audioContext.createAnalyser();
-        const microphone = audioContext.createMediaStreamSource(stream);
-        microphone.connect(analyser);
+    // 2) Open WebSocket
+    ws = new WebSocket(WS_URL);
 
-        // Buffer for audio data
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
+    // 2a) Enforce a connection timeout
+    const timeoutId = setTimeout(() => {
+      if (ws.readyState !== WebSocket.OPEN) {
+        console.error("❌ WebSocket connection timeout");
+        ws.close();
+      }
+    }, CONNECT_TIMEOUT);
 
-        function analyzeAudio() {
-          analyser.getByteFrequencyData(dataArray);
-          const average = dataArray.reduce((acc, value) => acc + value, 0) / bufferLength;
+    ws.onopen = () => {
+      clearTimeout(timeoutId);
+      console.log("✅ WebSocket connected");
 
-          // Send audio data (normalized) through WebSocket
-          if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ level: average / 255 }));
-          }
+      // 3) Start audio analysis
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const analyser = audioContext.createAnalyser();
+      const mic = audioContext.createMediaStreamSource(stream);
+      mic.connect(analyser);
 
-          requestAnimationFrame(analyzeAudio);
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      function analyzeAudio() {
+        analyser.getByteFrequencyData(dataArray);
+        const avg = dataArray.reduce((sum, v) => sum + v, 0) / bufferLength;
+        const normalized = (avg / 255).toFixed(3);
+
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ level: normalized }));
         }
-        
-        analyzeAudio();
-      };
+        requestAnimationFrame(analyzeAudio);
+      }
+      analyzeAudio();
+    };
 
-      ws.onerror = () => {
-        console.error('❌ WebSocket connection failed');
-      };
-    })
-    .catch(err => {
-      console.error('❌ Microphone access denied:', err);
-    });
+    ws.onerror = (err) => {
+      clearTimeout(timeoutId);
+      console.error("❌ WebSocket error:", err);
+    };
+
+    ws.onclose = () => {
+      clearTimeout(timeoutId);
+      console.log("⚠️ WebSocket closed");
+    };
+
+  } catch (err) {
+    console.error("❌ Microphone access denied or unavailable:", err);
+    alert("Microphone access is required to continue.");
+  }
 }
