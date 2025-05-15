@@ -40,19 +40,19 @@ async function startAudio() {
 
       function analyzeAudio() {
         analyser.getByteFrequencyData(dataArray);
-
-        const spectrum = Array.from(dataArray);
-        const avg = spectrum.reduce((sum, v) => sum + v, 0) / spectrum.length;
-        const normalized = (avg / 255).toFixed(3);
-        levelDisplay.innerText = `Level: ${normalized}`;
-
+        const average = dataArray.reduce((acc, value) => acc + value, 0) / bufferLength;
+      
+        // Send both level and full spectrum data
         if (ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ spectrum }));
+          ws.send(JSON.stringify({
+            level: average / 255,
+            spectrum: Array.from(dataArray).map(v => v / 255) // Normalize values between 0 and 1
+          }));
         }
-
+      
         requestAnimationFrame(analyzeAudio);
       }
-
+      
       analyzeAudio();
     };
 
