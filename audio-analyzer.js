@@ -1,8 +1,17 @@
-// audio-analyzer.js
-
 let ws;
 const WS_URL = "wss://fyt-interview-fa9bf3d3321e.herokuapp.com/";
-const CONNECT_TIMEOUT = 5000;
+const CONNECT_TIMEOUT = 5000; // ms
+
+// 1. Add a visual output element
+const levelDisplay = document.createElement("div");
+levelDisplay.style.position = "fixed";
+levelDisplay.style.top = "20px";
+levelDisplay.style.left = "20px";
+levelDisplay.style.fontSize = "24px";
+levelDisplay.style.color = "lime";
+levelDisplay.style.fontFamily = "monospace";
+levelDisplay.innerText = "Level: --";
+document.body.appendChild(levelDisplay);
 
 async function startAudio() {
   try {
@@ -30,21 +39,17 @@ async function startAudio() {
       const bufferLength = analyser.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
 
-      const meter = document.getElementById("meter");
-      const levelText = document.getElementById("level-text");
-
       function analyzeAudio() {
         analyser.getByteFrequencyData(dataArray);
         const avg = dataArray.reduce((sum, v) => sum + v, 0) / bufferLength;
-        const normalized = avg / 255;
+        const normalized = (avg / 255).toFixed(3);
 
-        const percent = (normalized * 100).toFixed(1);
-        meter.style.width = `${percent}%`;
-        levelText.textContent = `Audio Level: ${normalized.toFixed(3)}`;
+        // Show on page
+        levelDisplay.innerText = `Level: ${normalized}`;
 
+        // Send to WebSocket
         if (ws.readyState === WebSocket.OPEN) {
-          const payload = { level: normalized };
-          ws.send(JSON.stringify(payload));
+          ws.send(JSON.stringify({ level: normalized }));
         }
 
         requestAnimationFrame(analyzeAudio);
@@ -68,3 +73,6 @@ async function startAudio() {
     alert("Microphone access is required to continue.");
   }
 }
+
+// Call the function to start audio
+startAudio();
