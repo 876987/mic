@@ -37,7 +37,7 @@ async function startAudio() {
       function analyzeAudio() {
         analyser.getByteFrequencyData(dataArray);
         const avg = dataArray.reduce((sum, v) => sum + v, 0) / bufferLength;
-        const normalized = (avg / 255).toFixed(3);
+        const normalized = avg / 255;  // <-- number, not string
 
         if (ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify({ level: normalized }));
