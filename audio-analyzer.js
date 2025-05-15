@@ -40,7 +40,9 @@ async function startAudio() {
         const normalized = avg / 255;  // <-- number, not string
 
         if (ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ level: normalized }));
+          const payload = { level: normalized };
+          console.log("📤 Sending:", payload);
+          ws.send(JSON.stringify(payload));
         }
         requestAnimationFrame(analyzeAudio);
       }
