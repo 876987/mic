@@ -16,6 +16,20 @@ function startAudio() {
         const dataArray = new Uint8Array(bufferLength);
 
         function analyzeAudio() {
+          setInterval(() => {
+            const testData = {
+              level: Math.random(),
+              spectrum: Array.from({ length: 16 }, () => Math.random()) // 16 fake spectrum values
+            };
+            console.log("Sending test data:", testData);
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify(testData));
+            }
+          }, 2000);
+        }
+
+        
+       /* function analyzeAudio() {
           analyser.getByteFrequencyData(dataArray);
           const average = dataArray.reduce((acc, value) => acc + value, 0) / bufferLength;
 
@@ -30,7 +44,7 @@ function startAudio() {
             console.log("Sent spectrum data:", JSON.stringify(payload));
             ws.send(JSON.stringify(payload));
           }
-
+*/
           requestAnimationFrame(analyzeAudio);
         }
 
