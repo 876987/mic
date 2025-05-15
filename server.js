@@ -20,7 +20,13 @@ wss.on("connection", (ws) => {
 
   ws.on("message", (message) => {
     console.log("📨 Received audio data:", message);
-    // TODO: Forward to TouchDesigner via your existing pipeline
+
+    // Broadcast the message to all other connected clients (e.g., TouchDesigner)
+    wss.clients.forEach(client => {
+      if (client !== ws && client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
+    });
   });
 
   ws.on("close", () => {
