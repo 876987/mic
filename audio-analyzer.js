@@ -5,7 +5,7 @@ function startAudio() {
     .then(stream => {
       ws = new WebSocket("wss://fyt-interview-fa9bf3d3321e.herokuapp.com/");
 
-      ws.onopen = () => {
+/*      ws.onopen = () => {
         console.log('✅ WebSocket connected');
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const analyser = audioContext.createAnalyser();
@@ -14,7 +14,29 @@ function startAudio() {
 
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
+*/
 
+              ws.onopen = () => {
+          console.log('✅ WebSocket connected');
+        
+          // TEMP TEST FUNCTION - sends fake spectrum every 2s
+          function analyzeAudio() {
+            setInterval(() => {
+              const testData = {
+                level: Math.random(),
+                spectrum: Array.from({ length: 16 }, () => Math.random())
+              };
+              console.log("Sending test data:", testData);
+              if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(testData));
+              }
+            }, 2000);
+          }
+        
+          analyzeAudio(); // ← make sure this is called here
+        };
+
+      
         function analyzeAudio() {
           setInterval(() => {
             const testData = {
