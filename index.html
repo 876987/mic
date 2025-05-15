@@ -1,14 +1,55 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Interview</title>
-  <script src="audio-analyzer.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Audio Analyzer</title>
+  <style>
+    body {
+      background-color: #0f0f0f;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 50px;
+    }
+
+    #meter-container {
+      width: 80%;
+      height: 30px;
+      background: #333;
+      margin: 30px auto;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    #meter {
+      height: 100%;
+      background: #00ff99;
+      width: 0%;
+      transition: width 0.05s linear;
+    }
+
+    #level-text {
+      font-size: 1.5rem;
+      margin-top: 10px;
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
-  <h1>AI Interview with Audio Visualization</h1>
-  <button onclick="startAudio()">Start Interview</button>
+  <h1>🎧 Audio Analyzer</h1>
+  <div id="meter-container">
+    <div id="meter"></div>
+  </div>
+  <div id="level-text">Waiting...</div>
+  <button onclick="startAudio()">Start Audio</button>
+
+  <script src="audio-analyzer.js"></script>
 </body>
 </html>
