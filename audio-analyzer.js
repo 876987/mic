@@ -2,7 +2,6 @@ let ws;
 const WS_URL = "wss://fyt-interview-fa9bf3d3321e.herokuapp.com/";
 const CONNECT_TIMEOUT = 5000; // ms
 
-// 1. Add a visual output element
 const levelDisplay = document.createElement("div");
 levelDisplay.style.position = "fixed";
 levelDisplay.style.top = "20px";
@@ -42,20 +41,16 @@ async function startAudio() {
       function analyzeAudio() {
         analyser.getByteFrequencyData(dataArray);
 
-        // Convert Uint8Array to Array for JSON
         const spectrum = Array.from(dataArray);
+        const avg = spectrum.reduce((sum, v) => sum + v, 0) / spectrum.length;
+        const normalized = (avg / 255).toFixed(3);
+        levelDisplay.innerText = `Level: ${normalized}`;
 
-       // Optional: show average level on page
-       const avg = spectrum.reduce((sum, v) => sum + v, 0) / spectrum.length;
-       const normalized = (avg / 255).toFixed(3);
-       levelDisplay.innerText = `Level: ${normalized}`;
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ spectrum }));
+        }
 
-       // Send full spectrum over WebSocket
-       if (ws.readyState === WebSocket.OPEN) {
-         ws.send(JSON.stringify({ spectrum }));
-       }
-
-       requestAnimationFrame(analyzeAudio);
+        requestAnimationFrame(analyzeAudio);
       }
 
       analyzeAudio();
@@ -77,5 +72,5 @@ async function startAudio() {
   }
 }
 
-// Call the function to start audio
 startAudio();
+
